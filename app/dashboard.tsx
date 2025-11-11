@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import { Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
 import AppointmentCalendar, {
   Appointment,
 } from "../pageComponents/AppointmentCalendar";
 import AppointmentList from "../pageComponents/AppointmentList";
+import ThemedView from "../components/ThemendView";
+import ThemedText from "../components/ThemedText";
 
 const DUMMY_APPOINTMENTS: Appointment[] = [
   {
@@ -54,28 +56,25 @@ const DashboardScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ThemedView style={styles.safeArea}>
+      <AppointmentCalendar
+        appointments={allAppointments}
+        onDateSelect={handleDateSelect}
+      />
+      <ThemedText style={styles.listHeader}>
+        Часове за {selectedDate}
+      </ThemedText>
       <ScrollView style={styles.container}>
-        <Text style={styles.header}>Вашето Табло (Dashboard)</Text>
-
-        {/* Календарът */}
-        <AppointmentCalendar
-          appointments={allAppointments}
-          onDateSelect={handleDateSelect}
-        />
-
-        {/* Списък с часовете за избрания ден */}
-        <Text style={styles.listHeader}>Часове за {selectedDate}</Text>
         <AppointmentList appointments={filteredAppointments} />
       </ScrollView>
-    </SafeAreaView>
+    </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
+    padding: 10,
     flex: 1,
-    backgroundColor: "#f5f5f5",
   },
   container: {
     padding: 10,
@@ -89,8 +88,8 @@ const styles = StyleSheet.create({
   listHeader: {
     fontSize: 18,
     fontWeight: "600",
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 0,
+    marginBottom: 5,
     marginLeft: 10,
   },
 });

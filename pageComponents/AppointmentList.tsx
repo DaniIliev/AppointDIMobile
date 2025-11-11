@@ -1,9 +1,9 @@
-// src/components/AppointmentList.tsx
-
 import React from "react";
 import { FlatList, Text, View, StyleSheet } from "react-native";
 import { Colors } from "../constants/Colors";
 import { Appointment } from "./AppointmentCalendar";
+import ThemedView from "../components/ThemendView";
+import ThemedText from "../components/ThemedText";
 
 interface AppointmentListProps {
   appointments: Appointment[];
@@ -13,19 +13,25 @@ const formatTime = (date: Date): string =>
   date.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
 
 const AppointmentItem: React.FC<{ item: Appointment }> = ({ item }) => (
-  <View style={styles.itemContainer}>
-    <View style={styles.timeBlock}>
-      <Text style={styles.timeText}>{formatTime(item.startTime)}</Text>
-      <Text style={styles.timeDivider}>-</Text>
-      <Text style={styles.timeText}>{formatTime(item.endTime)}</Text>
-    </View>
-    <View style={styles.detailsBlock}>
-      <Text style={styles.titleText} numberOfLines={1}>
+  <ThemedView style={styles.itemContainer}>
+    <ThemedView style={styles.timeBlock}>
+      <ThemedText style={styles.timeText}>
+        {formatTime(item.startTime)}
+      </ThemedText>
+      <ThemedText style={styles.timeDivider}>-</ThemedText>
+      <ThemedText style={styles.timeText}>
+        {formatTime(item.endTime)}
+      </ThemedText>
+    </ThemedView>
+    <ThemedView style={styles.detailsBlock}>
+      <ThemedText style={styles.titleText} numberOfLines={1}>
         {item.title}
-      </Text>
-      <Text style={styles.clientText}>Клиент: {item.clientName}</Text>
-    </View>
-  </View>
+      </ThemedText>
+      <ThemedText style={styles.clientText}>
+        Клиент: {item.clientName}
+      </ThemedText>
+    </ThemedView>
+  </ThemedView>
 );
 
 const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
@@ -48,19 +54,18 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
 };
 
 const styles = StyleSheet.create({
-  // ... (Добави стиловете по твой вкус)
   itemContainer: {
     flexDirection: "row",
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    padding: 5,
     alignItems: "center",
-    backgroundColor: "#fff",
     borderRadius: 8,
     marginVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.primary,
   },
   timeBlock: {
-    width: 80, // Фиксирана ширина за часовете
+    flexDirection: "row",
+    gap: 2,
     marginRight: 10,
     alignItems: "center",
   },
@@ -74,7 +79,9 @@ const styles = StyleSheet.create({
     color: "#aaa",
   },
   detailsBlock: {
-    flex: 1,
+    // flex: 1,
+    flexDirection: "row",
+    gap: 7,
   },
   titleText: {
     fontSize: 16,
