@@ -10,7 +10,8 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar value="auto" />
-      <Stack
+      <Stack screenOptions={{ headerShown: false, animation: "none" }} />
+      {/* <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.navBackground },
           headerTintColor: theme.title,
@@ -18,7 +19,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ title: "Home" }} />
-      </Stack>
+      </Stack> */}
     </>
   );
 }

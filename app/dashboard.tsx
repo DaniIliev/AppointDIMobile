@@ -56,7 +56,7 @@ const DashboardScreen: React.FC = () => {
   };
 
   return (
-    <ThemedView style={styles.safeArea}>
+    <ThemedView style={styles.safeArea} safe={true}>
       <AppointmentCalendar
         appointments={allAppointments}
         onDateSelect={handleDateSelect}
@@ -73,7 +73,6 @@ const DashboardScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    padding: 10,
     flex: 1,
   },
   container: {
