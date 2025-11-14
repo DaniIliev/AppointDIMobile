@@ -41,6 +41,12 @@ const Index: React.FC = () => {
       <Link href={"/dashboard"} style={styles.link}>
         <ThemedText>Dashboard</ThemedText>
       </Link>
+      <Link href={"/profile"} style={styles.link}>
+        <ThemedText>Test</ThemedText>
+      </Link>
+      <Link href={"/performance"} style={styles.link}>
+        <ThemedText>pr</ThemedText>
+      </Link>
     </ThemedView>
   );
 };

@@ -26,8 +26,9 @@ import {
   Dimensions,
   LayoutAnimation,
 } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { CalendarList, DateData } from "react-native-calendars";
-import { Colors } from "../constants/Colors";
+import { Colors, ColorTheme } from "../constants/Colors";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import ThemedText from "../components/ThemedText";
 import dayjs from "dayjs";
@@ -45,6 +46,7 @@ const { width } = Dimensions.get("window");
 interface AppointmentCalendarProps {
   appointments: Appointment[];
   onDateSelect: (date: string) => void;
+  isWeekView: boolean;
 }
 
 const getWeekRange = (
@@ -66,7 +68,9 @@ interface CustomWeekViewProps {
   selectedDay: string;
   markedDates: { [key: string]: MarkingProps };
   handleDayPress: (day: DateData) => void;
-  theme: any;
+  theme: ColorTheme;
+  headerTitle: string;
+  onWeekChange: (direction: "prev" | "next") => void;
 }
 
 const CustomWeekView: React.FC<CustomWeekViewProps> = ({
@@ -74,27 +78,39 @@ const CustomWeekView: React.FC<CustomWeekViewProps> = ({
   markedDates,
   handleDayPress,
   theme,
+  headerTitle,
+  onWeekChange,
 }) => {
   const week = useMemo(() => getWeekRange(selectedDay), [selectedDay]);
   return (
     <ThemedView
-      style={[
-        weekStyles.weekContainer,
-        { backgroundColor: theme.uiBackground },
-      ]}
+      style={[weekStyles.weekContainer, { backgroundColor: Colors.primary }]}
     >
       <ThemedView
         style={[
-          weekStyles.dayNamesRow,
-          { backgroundColor: theme.uiBackground },
+          weekStyles.headerContainer,
+          { backgroundColor: Colors.primary },
         ]}
+      >
+        <TouchableOpacity onPress={() => onWeekChange("prev")}>
+          <Feather name="chevron-left" size={24} color={theme.title} />
+        </TouchableOpacity>
+        <ThemedText style={[weekStyles.headerTitleText, { color: theme.text }]}>
+          {headerTitle}
+        </ThemedText>
+        <TouchableOpacity onPress={() => onWeekChange("next")}>
+          <Feather name="chevron-right" size={24} color={theme.title} />
+        </TouchableOpacity>
+      </ThemedView>
+      <ThemedView
+        style={[weekStyles.dayNamesRow, { backgroundColor: Colors.primary }]}
       >
         {week.map((day) => (
           <ThemedText
             key={day.dateString + "name"}
             style={[
               weekStyles.dayNameText,
-              { color: theme.text, backgroundColor: theme.uiBackground },
+              { color: theme.text, backgroundColor: Colors.primary },
             ]}
           >
             {day.dayName}
@@ -103,7 +119,7 @@ const CustomWeekView: React.FC<CustomWeekViewProps> = ({
       </ThemedView>
 
       <ThemedView
-        style={[weekStyles.daysRow, { backgroundColor: theme.uiBackground }]}
+        style={[weekStyles.daysRow, { backgroundColor: Colors.primary }]}
       >
         {week.map((day) => {
           const isSelected = day.dateString === selectedDay;
@@ -118,7 +134,7 @@ const CustomWeekView: React.FC<CustomWeekViewProps> = ({
                 weekStyles.dayCell,
                 isSelected && {
                   backgroundColor: marking?.selectedColor || Colors.primary,
-                  //
+                  // backgroundColor: "white",
                   elevation: 5,
                   shadowColor: Colors.primary,
                   shadowOffset: { width: 0, height: 2 },
@@ -160,14 +176,16 @@ const CustomWeekView: React.FC<CustomWeekViewProps> = ({
 const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   appointments,
   onDateSelect,
+  isWeekView,
 }) => {
   const [selectedDay, setSelectedDay] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
   const markedDates: { [key: string]: MarkingProps } = {};
-  const [isMonthView, setIsMonthView] = useState<boolean>(true);
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? "light"] ?? Colors.light;
+
+  const headerTitle = dayjs(selectedDay).format("MMMM YYYY");
 
   appointments.forEach((appt) => {
     const dateString = dayjs(appt.startTime).format("YYYY-MM-DD");
@@ -197,10 +215,20 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
     markedDates[selectedDay] = {
       ...existingMarking,
       selected: true,
-      selectedColor: Colors.primary,
+      selectedColor: theme.background,
       selectedTextColor: "white",
     };
   }
+
+  const handleWeekChange = useCallback(
+    (direction: "prev" | "next") => {
+      const days = direction === "next" ? 7 : -7;
+      const newDay = dayjs(selectedDay).add(days, "day").format("YYYY-MM-DD");
+      setSelectedDay(newDay);
+      onDateSelect(newDay);
+    },
+    [selectedDay, onDateSelect]
+  );
 
   const handleDayPress = (day: DateData) => {
     setSelectedDay(day.dateString);
@@ -211,44 +239,17 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
     <ThemedView
       style={[styles.container, { backgroundColor: theme.iconColor }]}
     >
-      <ThemedView style={[styles.header, { backgroundColor: theme.iconColor }]}>
-        {!isMonthView && (
-          <ThemedText style={styles.headerTitle}>
-            {dayjs(selectedDay).format(isMonthView ? "MMMM YYYY" : "MMMM YYYY")}
-          </ThemedText>
-        )}
-        <TouchableOpacity
-          style={styles.toggleButton}
-          onPress={() => {
-            setIsMonthView(!isMonthView);
-            // LayoutAnimation.configureNext(
-            //   LayoutAnimation.Presets.easeInEaseOut
-            // );
-          }}
-        >
-          <ThemedText
-            style={{
-              color: Colors.primary,
-              fontWeight: "bold",
-              alignItems: "center",
-            }}
-          >
-            {isMonthView ? "Скрий" : "Покажи"}
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-
-      {isMonthView ? (
+      {!isWeekView ? (
         <CalendarList
           onDayPress={handleDayPress}
           markedDates={markedDates}
           current={selectedDay}
           style={[styles.calendarStyle, { height: 400 }]}
           theme={{
-            arrowColor: Colors.primary,
-            monthTextColor: Colors.primary,
+            monthTextColor: theme.title,
             todayTextColor: "red",
-            calendarBackground: theme.uiBackground,
+            // calendarBackground: theme.uiBackground,
+            calendarBackground: Colors.primary,
             dayTextColor: theme.text,
             selectedDayBackgroundColor: "red",
             textDisabledColor: theme.iconColor,
@@ -260,6 +261,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
           markedDates={markedDates}
           handleDayPress={handleDayPress}
           theme={theme}
+          headerTitle={headerTitle}
+          onWeekChange={handleWeekChange}
         />
       )}
     </ThemedView>
@@ -267,11 +270,22 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
 };
 
 const weekStyles = StyleSheet.create({
+  headerContainer: {
+    paddingVertical: 5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerTitleText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textTransform: "capitalize",
+  },
   weekContainer: {
     paddingHorizontal: 15,
     paddingBottom: 15,
     borderRadius: 20,
-    height: 80,
+    height: 500,
   },
   dayNamesRow: {
     flexDirection: "row",
@@ -281,7 +295,7 @@ const weekStyles = StyleSheet.create({
   },
   dayNameText: {
     fontSize: 12,
-    fontWeight: "bold",
+    // fontWeight: "bold",
     width: (width - 30) / 7,
     textAlign: "center",
   },
@@ -291,7 +305,7 @@ const weekStyles = StyleSheet.create({
   },
   dayCell: {
     width: (width - 30) / 7,
-    height: 35,
+    height: 40,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",

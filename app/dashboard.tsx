@@ -7,7 +7,7 @@ import AppointmentList from "../pageComponents/AppointmentList";
 import ThemedView from "../components/ThemendView";
 import ThemedText from "../components/ThemedText";
 
-const DUMMY_APPOINTMENTS: Appointment[] = [
+export const DUMMY_APPOINTMENTS: Appointment[] = [
   {
     id: "1",
     title: "Среща с Петров",
@@ -57,10 +57,10 @@ const DashboardScreen: React.FC = () => {
 
   return (
     <ThemedView style={styles.safeArea} safe={true}>
-      <AppointmentCalendar
+      {/* <AppointmentCalendar
         appointments={allAppointments}
         onDateSelect={handleDateSelect}
-      />
+      /> */}
       <ThemedText style={styles.listHeader}>
         Часове за {selectedDate}
       </ThemedText>

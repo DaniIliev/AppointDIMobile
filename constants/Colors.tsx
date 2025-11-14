@@ -1,3 +1,19 @@
+export type ColorTheme = {
+  text: string;
+  title: string;
+  background: string;
+  navBackground: string;
+  iconColor: string;
+  iconColorFocused: string;
+  uiBackground: string;
+};
+
+export type ColorsType = {
+  primary: string;
+  warning: string;
+  dark: ColorTheme;
+  light: ColorTheme;
+};
 export const Colors = {
   primary: "#6849a7",
   warning: "#cc475a",
