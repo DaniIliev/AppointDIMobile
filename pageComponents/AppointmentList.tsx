@@ -1,9 +1,10 @@
 import React from "react";
-import { FlatList, Text, View, StyleSheet } from "react-native";
+import { FlatList, View, StyleSheet } from "react-native";
 import { Colors } from "../constants/Colors";
 import { Appointment } from "./AppointmentCalendar";
 import ThemedView from "../components/ThemendView";
 import ThemedText from "../components/ThemedText";
+import { useAuth } from "../hooks/useAuth";
 
 interface AppointmentListProps {
   appointments: Appointment[];
@@ -12,14 +13,21 @@ interface AppointmentListProps {
 const formatTime = (date: Date): string =>
   date.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
 
-const AppointmentItem: React.FC<{ item: Appointment }> = ({ item }) => (
+const AppointmentItem: React.FC<{
+  item: Appointment;
+  primaryColor: string;
+  mutedTextColor: string;
+  iconColor: string;
+}> = ({ item, primaryColor, mutedTextColor, iconColor }) => (
   <ThemedView style={styles.itemContainer}>
     <ThemedView style={styles.timeBlock}>
-      <ThemedText style={styles.timeText}>
+      <ThemedText style={[styles.timeText, { color: primaryColor }]}>
         {formatTime(item.startTime)}
       </ThemedText>
-      <ThemedText style={styles.timeDivider}>-</ThemedText>
-      <ThemedText style={styles.timeText}>
+      <ThemedText style={[styles.timeDivider, { color: iconColor }]}>
+        -
+      </ThemedText>
+      <ThemedText style={[styles.timeText, { color: primaryColor }]}>
         {formatTime(item.endTime)}
       </ThemedText>
     </ThemedView>
@@ -27,7 +35,7 @@ const AppointmentItem: React.FC<{ item: Appointment }> = ({ item }) => (
       <ThemedText style={styles.titleText} numberOfLines={1}>
         {item.title}
       </ThemedText>
-      <ThemedText style={styles.clientText}>
+      <ThemedText style={[styles.clientText, { color: mutedTextColor }]}>
         Клиент: {item.clientName}
       </ThemedText>
     </ThemedView>
@@ -35,10 +43,22 @@ const AppointmentItem: React.FC<{ item: Appointment }> = ({ item }) => (
 );
 
 const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
+  const { themePreference, primaryColor } = useAuth();
+  const resolvedScheme = themePreference ?? "dark";
+  const colorScheme =
+    resolvedScheme === "dark" || resolvedScheme === "light"
+      ? resolvedScheme
+      : "dark";
+  const theme = Colors[colorScheme ?? "light"] ?? Colors.light;
+
+  const mutedTextColor = theme.iconColor;
+
   if (appointments.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Няма запазени часове за тази дата.</Text>
+        <ThemedText style={[styles.emptyText, { color: mutedTextColor }]}>
+          Няма запазени часове за тази дата.
+        </ThemedText>
       </View>
     );
   }
@@ -47,7 +67,14 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments }) => {
     <FlatList
       data={appointments}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <AppointmentItem item={item} />}
+      renderItem={({ item }) => (
+        <AppointmentItem
+          item={item}
+          primaryColor={primaryColor}
+          mutedTextColor={mutedTextColor}
+          iconColor={theme.iconColor}
+        />
+      )}
       contentContainerStyle={styles.listContent}
     />
   );
@@ -61,7 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 4,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.primary,
+    borderBottomColor: "rgba(130,130,130,0.35)",
   },
   timeBlock: {
     flexDirection: "row",
@@ -71,12 +98,10 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontWeight: "bold",
-    color: Colors.primary,
     fontSize: 14,
   },
   timeDivider: {
     fontSize: 10,
-    color: "#aaa",
   },
   detailsBlock: {
     // flex: 1,
@@ -89,7 +114,6 @@ const styles = StyleSheet.create({
   },
   clientText: {
     fontSize: 12,
-    color: "#666",
     marginTop: 2,
   },
   emptyContainer: {
@@ -98,7 +122,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#999",
   },
   listContent: {
     paddingBottom: 20,

@@ -6,6 +6,7 @@ import {
   TextStyle,
 } from "react-native";
 import { Colors } from "../constants/Colors";
+import { useAuth } from "../hooks/useAuth";
 
 type OmittedTextProps = Omit<TextProps, "style">;
 
@@ -19,8 +20,10 @@ export default function ThemedText({
   title = false,
   ...props
 }: ThemedTextProps) {
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"] ?? Colors.light;
+  const systemScheme = useColorScheme();
+  const { themePreference } = useAuth();
+  const colorScheme = themePreference ?? systemScheme ?? "light";
+  const theme = Colors[colorScheme] ?? Colors.light;
 
   const textColor = title ? theme.title : theme.text;
 

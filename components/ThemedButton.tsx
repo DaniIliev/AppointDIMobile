@@ -5,16 +5,23 @@ import {
   ViewStyle,
   PressableProps,
 } from "react-native";
-import { Colors } from "../constants/Colors";
+import { useAuth } from "../hooks/useAuth";
 
 interface ThemedButtonProps extends PressableProps {
   style?: StyleProp<ViewStyle>;
 }
 
 function ThemedButton({ style, ...props }: ThemedButtonProps) {
+  const { primaryColor } = useAuth();
+
   return (
     <Pressable
-      style={({ pressed }) => [styles.btn, pressed && styles.pressed, style]}
+      style={({ pressed }) => [
+        styles.btn,
+        { backgroundColor: primaryColor },
+        pressed && styles.pressed,
+        style,
+      ]}
       {...props}
     />
   );
@@ -22,7 +29,6 @@ function ThemedButton({ style, ...props }: ThemedButtonProps) {
 
 const styles = StyleSheet.create({
   btn: {
-    backgroundColor: Colors.primary,
     padding: 14,
     borderRadius: 6,
     marginVertical: 10,

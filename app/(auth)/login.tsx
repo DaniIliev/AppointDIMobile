@@ -9,7 +9,8 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
-  useColorScheme,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import ThemedView from "../../components/ThemendView";
@@ -20,6 +21,7 @@ import ThemedTextInput from "../../components/ThemedTextInput";
 import ThemedLogo from "../../components/ThemedLogo";
 import ThemedButton from "../../components/ThemedButton";
 import { Colors } from "../../constants/Colors";
+import { useAuth } from "../../hooks/useAuth";
 
 if (
   Platform.OS === "android" &&
@@ -78,13 +80,29 @@ const Wave: React.FC<WaveProps> = ({ height, color }) => {
 };
 
 export default function Login() {
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"] ?? Colors.light;
-
   const [isWelcomeScreen, setIsWelcomeScreen] = useState(true);
-  const handleLogin = () => {
-    console.log("Login button pressed");
-    // Implement login logic here
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Грешка", "Моля въведи имейл и парола.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await login({ email: email.trim().toLowerCase(), password });
+    } catch (error) {
+      Alert.alert(
+        "Неуспешен вход",
+        error instanceof Error ? error.message : "Възникна грешка при вход.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleContinue = () => {
@@ -111,7 +129,7 @@ export default function Login() {
           <View style={styles.logoContainer}>
             <ThemedLogo style={styles.logo} />
           </View>
-          <Wave height={waveHeight} color={theme.background} />
+          <Wave height={waveHeight} color={Colors.light.background} />
         </View>
         <View style={[styles.bottomSection, { height: bottomSectionHeight }]}>
           {isWelcomeScreen ? (
@@ -143,6 +161,8 @@ export default function Login() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
                 />
                 <Spacer height={20} />
 
@@ -152,6 +172,8 @@ export default function Login() {
                   placeholderTextColor="gray"
                   secureTextEntry
                   style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
                 />
                 <Spacer height={30} />
 
@@ -178,8 +200,15 @@ export default function Login() {
                     styles.loginButton,
                     { backgroundColor: Colors.primary },
                   ]}
+                  disabled={loading}
                 >
-                  <ThemedText style={styles.loginButtonText}>Login</ThemedText>
+                  {loading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <ThemedText style={styles.loginButtonText}>
+                      Login
+                    </ThemedText>
+                  )}
                 </ThemedButton>
               </View>
 

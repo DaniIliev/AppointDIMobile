@@ -1,88 +1,116 @@
-// app/(dashboar)/dashboard.tsx
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
-import { DUMMY_APPOINTMENTS } from "../dashboard";
+import React, { useState } from "react";
+import { Alert, Dimensions, StyleSheet } from "react-native";
 import AppointmentCalendar, {
   Appointment,
 } from "../../pageComponents/AppointmentCalendar";
-import { router } from "expo-router";
 import ThemedView from "../../components/ThemendView";
-import AppointListBottomSheet from "./components/AppointmentBottomSheet";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { apiRequest } from "../../lib/http";
+import DashboardBottomSheet from "../../components/DashboardBottomSheet";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const BOTTOM_TAB_HEIGHT = 90;
-const HEIGHT_50_PERCENT = SCREEN_HEIGHT * 0.4;
-const HEIGHT_85_PERCENT = SCREEN_HEIGHT * 0.65;
+const SHEET_MIN_HEIGHT = SCREEN_HEIGHT * 0.32;
+const SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.62;
+
+type ApiAppointment = {
+  _id: string;
+  serviceName?: string;
+  clientName?: string;
+  appointmentTime: {
+    start: string;
+    end: string;
+  };
+};
 
 const DashboardScreen: React.FC = () => {
+  const { session } = useAuth();
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
-  const [sheetHeight, setSheetHeight] = useState(HEIGHT_50_PERCENT);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sheetHeight, setSheetHeight] = useState(SHEET_MIN_HEIGHT);
   const [isWeekView, setIsWeekView] = useState(false);
-  const handleSheetDrag = (newHeight: number) => {
-    setSheetHeight(newHeight);
-    // Ако новата височина е над 75% от екрана, превключваме на седмичен изглед
-    if (newHeight >= HEIGHT_85_PERCENT * 0.9) {
-      setIsWeekView(true);
-    } else {
-      setIsWeekView(false);
+
+  const fetchAppointments = useCallback(async () => {
+    if (!session?.token || !session?.user?.businessId) return;
+
+    try {
+      setLoading(true);
+      const list = await apiRequest<ApiAppointment[]>(
+        `/api/appointment/business/${session.user.businessId}`,
+        {
+          token: session.token,
+        },
+      );
+
+      const mapped: Appointment[] = list.map((item) => ({
+        id: item._id,
+        title: item.serviceName || "Appointment",
+        startTime: new Date(item.appointmentTime.start),
+        endTime: new Date(item.appointmentTime.end),
+        location: "",
+        clientName: item.clientName || "Клиент",
+      }));
+
+      setAppointments(mapped);
+    } catch (error) {
+      Alert.alert(
+        "Грешка",
+        error instanceof Error
+          ? error.message
+          : "Неуспешно зареждане на часове.",
+      );
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [session?.token, session?.user?.businessId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void fetchAppointments();
+    }, [fetchAppointments]),
+  );
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
   };
 
-  // ... DUMMY_APPOINTMENTS
-  const DUMMY_APPOINTMENTS: Appointment[] = []; // Вашите данни
+  const handleSheetDrag = (nextHeight: number) => {
+    setSheetHeight(nextHeight);
+    setIsWeekView(nextHeight > (SHEET_MIN_HEIGHT + SHEET_MAX_HEIGHT) / 2);
+  };
 
   return (
-    <ThemedView style={styles.container} safe={true}>
+    <ThemedView style={styles.container}>
       <AppointmentCalendar
-        appointments={DUMMY_APPOINTMENTS}
+        appointments={appointments}
         onDateSelect={handleDateSelect}
         isWeekView={isWeekView}
       />
 
-      <AppointListBottomSheet
+      <DashboardBottomSheet
+        selectedDate={selectedDate}
+        appointments={appointments}
         currentHeight={sheetHeight}
         onDrag={handleSheetDrag}
-        // defaultHeight={HEIGHT_50_PERCENT}
-        maxHeight={HEIGHT_85_PERCENT}
-        minHeight={HEIGHT_50_PERCENT}
+        minHeight={SHEET_MIN_HEIGHT}
+        maxHeight={SHEET_MAX_HEIGHT}
         bottomOffset={BOTTOM_TAB_HEIGHT}
-        selectedDate={selectedDate}
+        onRefresh={() => void fetchAppointments()}
+        refreshing={loading}
       />
     </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   container: {
-    padding: 5,
-    backgroundColor: "#6849a7",
-  },
-  button: {
-    padding: 15,
-    backgroundColor: "#6849a7",
-    borderRadius: 8,
-    margin: 10,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
+    flex: 1,
+    paddingHorizontal: 12,
   },
 });
 

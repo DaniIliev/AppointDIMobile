@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Colors } from "../constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../hooks/useAuth";
 
 type OmittedViewProps = Omit<ViewProps, "style">;
 
@@ -20,8 +21,10 @@ const ThemedView: React.FC<ThemedViewProps> = ({
   safe = false,
   ...props
 }) => {
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"] ?? Colors.light;
+  const systemScheme = useColorScheme();
+  const { themePreference } = useAuth();
+  const colorScheme = themePreference ?? systemScheme ?? "light";
+  const theme = Colors[colorScheme] ?? Colors.light;
 
   if (!safe)
     return (

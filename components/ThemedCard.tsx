@@ -1,12 +1,12 @@
 import {
   View,
-  useColorScheme,
   StyleSheet,
   ViewProps,
   StyleProp,
   ViewStyle,
 } from "react-native";
 import { Colors } from "../constants/Colors";
+import { useAuth } from "../hooks/useAuth";
 
 type OmittedViewProps = Omit<ViewProps, "style">;
 
@@ -15,8 +15,9 @@ interface ThemedCardProps extends OmittedViewProps {
 }
 
 const ThemedCard: React.FC<ThemedCardProps> = ({ style, ...props }) => {
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"] ?? Colors.light;
+  const { themePreference } = useAuth();
+  const colorScheme = themePreference ?? "dark";
+  const theme = Colors[colorScheme] ?? Colors.light;
 
   return (
     <View

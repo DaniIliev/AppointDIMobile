@@ -7,6 +7,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { Colors } from "../constants/Colors";
+import { useAuth } from "../hooks/useAuth";
 
 type OmittedTextInputProps = Omit<TextInputProps, "style">;
 
@@ -18,8 +19,10 @@ export default function ThemedTextInput({
   style,
   ...props
 }: ThemedTextInputProps) {
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"] ?? Colors.light;
+  const systemScheme = useColorScheme();
+  const { themePreference } = useAuth();
+  const colorScheme = themePreference ?? systemScheme ?? "light";
+  const theme = Colors[colorScheme] ?? Colors.light;
 
   return (
     <TextInput

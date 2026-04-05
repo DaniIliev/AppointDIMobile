@@ -1,5 +1,4 @@
 import {
-  useColorScheme,
   Image,
   ImageProps,
   ImageSourcePropType,
@@ -13,8 +12,6 @@ type ThemedLogoProps = Omit<ImageProps, "source"> & {
 };
 
 const ThemedLogo: React.FC<ThemedLogoProps> = ({ style, ...props }) => {
-  const colorScheme = useColorScheme();
-
   const logo: ImageSourcePropType = Logo;
   return <Image source={logo} style={style} {...props} />;
 };
